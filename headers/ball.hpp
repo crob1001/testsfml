@@ -1,7 +1,7 @@
 class Ball : public sf::CircleShape {
     public:
-        float direction[2] = {float((std::time(0)) % 10), float(std::trunc((std::time(0) % 100) / 10))};
-        float velocity[2] = {.3,.3};
+        float direction[2] = {float((std::time(0)) % 10), float(std::trunc((std::time(0) % 10) + 1))};
+        float velocity = .3;
         float oldpos[2];
 
         Ball(float radius, sf::Vector2f pos) : CircleShape(radius) {

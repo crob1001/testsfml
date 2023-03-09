@@ -40,7 +40,7 @@ int main()
     sf::Font font;
     font.loadFromFile("resources/Orbitron.ttf");
     score.setFont(font);
-    score.setString(std::to_string(paddle1.score) + " SCORE " + std::to_string(paddle2.score));
+    score.setString(std::to_string(paddle2.score) + " SCORE " + std::to_string(paddle1.score));
     score.setFillColor(sf::Color(0, 0, 0, 255));
     score.setCharacterSize(24);
     sf::FloatRect scoreTextRect = score.getLocalBounds();
@@ -88,20 +88,24 @@ int main()
             }
         }
 
-        ball.move(ball.direction[0] * ball.velocity[0],
-        ball.direction[1] * ball.velocity[1]);
+        ball.move(ball.direction[0] * ball.velocity,
+        ball.direction[1] * ball.velocity);
 
-        // ball.move(ball.direction[0] * -1,
+        // ball.move(ball.direction[0] * 1,
         // ball.direction[1] * 0);
 
-        if (ball.getPosition().x + ball.getRadius() > window.getSize().x){
+        if (ball.getPosition().x + ball.getRadius() >= window.getSize().x){
             ball.move(0, window.getSize().x - (ball.getPosition().x + ball.getRadius()));
+            ball.direction[0] = ball.direction[0] * -1;
             paddle2.score += 1;
+            ball.velocity += .01;
             ball.setPosition(window.getSize().x / 2, window.getSize().y / 2);
         }
-        if (ball.getPosition().x - ball.getRadius() < 0){
+        if (ball.getPosition().x - ball.getRadius() <= 0){
             ball.move(0, 0 - (ball.getPosition().x - ball.getRadius()));
+            ball.direction[0] = ball.direction[0] * -1;
             paddle1.score += 1;
+            ball.velocity += .01;
             ball.setPosition(window.getSize().x / 2, window.getSize().y / 2);
         }
 
@@ -114,22 +118,18 @@ int main()
             ball.direction[1] = ball.direction[1] * -1;
         }
 
-        if (ball.getPosition().x - ball.getRadius() <= paddle1.getPosition().x /*+ (paddle1.getSize().x / 2)*/){
-            if (ball.getPosition().y - ball.getRadius() < paddle1.getPosition().y /*- (paddle1.getSize().y / 2)*/){
-                if (ball.getPosition().y + ball.getRadius() > paddle1.getPosition().y /*+ (paddle1.getSize().y / 2)*/){
+        if (ball.getPosition().x - ball.getRadius() <= paddle1.getPosition().x - paddle1.getSize().x / 2){
+            if (ball.getPosition().y - ball.getRadius() >= paddle1.getPosition().y - paddle1.getSize().y / 2){
+                if (ball.getPosition().y + ball.getRadius() <= paddle1.getPosition().y + paddle1.getSize().y / 2){
                     ball.direction[0] = ball.direction[0] * -1;
-                    ball.move(ball.direction[0] * (paddle2.getSize().x / 2),
-                    ball.direction[1] * (paddle2.getSize().x / 2));
                 }
             }
         }
 
-        if (ball.getPosition().x + ball.getRadius() >= paddle2.getPosition().x /*- (paddle2.getSize().x / 2)*/){
-            if (ball.getPosition().y + ball.getRadius() >= paddle2.getPosition().y /*+ (paddle2.getSize().y / 2*/){
-                if (ball.getPosition().y - ball.getRadius() <= paddle2.getPosition().y /*- (paddle1.getSize().y / 2)*/) {
+        if (ball.getPosition().x + ball.getRadius() >= paddle2.getPosition().x + paddle2.getSize().x / 2){
+            if (ball.getPosition().y - ball.getRadius() >= paddle2.getPosition().y - paddle2.getSize().y / 2){
+                if (ball.getPosition().y + ball.getRadius() <= paddle2.getPosition().y + paddle2.getSize().y / 2){
                     ball.direction[0] = ball.direction[0] * -1;
-                    ball.move(ball.direction[0] * (paddle2.getSize().x / 2),
-                    ball.direction[1] * (paddle2.getSize().x / 2));
                 }
             }
         }
@@ -166,6 +166,8 @@ int main()
         if (paddle1.getPosition().y - (paddle1.getSize().y / 2) < 0){
             paddle1.move(0, 0 - (paddle1.getPosition().y - (paddle1.getSize().y / 2)));
         }
+
+        score.setString(std::to_string(paddle2.score) + " SCORE " + std::to_string(paddle1.score));
 
         paddle1.updateCorner();
         paddle2.updateCorner();
