@@ -13,8 +13,6 @@ int main()
 
     sf::Clock deltaClock;
 
-    __int8 state = 0;
-
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
     
@@ -45,12 +43,26 @@ int main()
     score.setString(std::to_string(paddle1.score) + " SCORE " + std::to_string(paddle2.score));
     score.setFillColor(sf::Color(0, 0, 0, 255));
     score.setCharacterSize(24);
-    sf::FloatRect textRect = score.getLocalBounds();
-    score.setOrigin(textRect.left + textRect.width/2.0f,
-               textRect.top  + textRect.height/2.0f);
+    sf::FloatRect scoreTextRect = score.getLocalBounds();
+    score.setOrigin(scoreTextRect.left + scoreTextRect.width/2.0f,
+               scoreTextRect.top  + scoreTextRect.height/2.0f);
     score.setPosition(window.getSize().x / 2, 20);
 
+    sf::Text pause;
+    pause.setFont(font);
+    pause.setString("PRESS ENTER TO PLAY");
+    pause.setFillColor(sf::Color(0, 0, 0, 255));
+    pause.setCharacterSize(40);
+    sf::FloatRect pauseTextRect = pause.getLocalBounds();
+    pause.setOrigin(pauseTextRect.left + pauseTextRect.width/2.0f,
+               pauseTextRect.top  + pauseTextRect.height/2.0f);
+    pause.setPosition(window.getSize().x / 2, window.getSize().y / 2);
+
     sf::Time dt = deltaClock.restart();
+
+    float ballpos[2];
+    float p1pos[2];
+    float p2pos[2];
 
     while (window.isOpen()) {
 
@@ -76,19 +88,21 @@ int main()
             }
         }
 
-        ball.oldpos[0] = ball.getPosition().x;
-        ball.oldpos[1] = ball.getPosition().y;
-
         ball.move(ball.direction[0] * ball.velocity[0],
         ball.direction[1] * ball.velocity[1]);
+
+        // ball.move(ball.direction[0] * -1,
+        // ball.direction[1] * 0);
 
         if (ball.getPosition().x + ball.getRadius() > window.getSize().x){
             ball.move(0, window.getSize().x - (ball.getPosition().x + ball.getRadius()));
             paddle2.score += 1;
+            ball.setPosition(window.getSize().x / 2, window.getSize().y / 2);
         }
         if (ball.getPosition().x - ball.getRadius() < 0){
             ball.move(0, 0 - (ball.getPosition().x - ball.getRadius()));
             paddle1.score += 1;
+            ball.setPosition(window.getSize().x / 2, window.getSize().y / 2);
         }
 
         if (ball.getPosition().y + ball.getRadius() > window.getSize().y){
@@ -99,6 +113,27 @@ int main()
             ball.move(0, 0 - (ball.getPosition().y - ball.getRadius()));
             ball.direction[1] = ball.direction[1] * -1;
         }
+
+        if (ball.getPosition().x - ball.getRadius() <= paddle1.getPosition().x /*+ (paddle1.getSize().x / 2)*/){
+            if (ball.getPosition().y - ball.getRadius() < paddle1.getPosition().y /*- (paddle1.getSize().y / 2)*/){
+                if (ball.getPosition().y + ball.getRadius() > paddle1.getPosition().y /*+ (paddle1.getSize().y / 2)*/){
+                    ball.direction[0] = ball.direction[0] * -1;
+                    ball.move(ball.direction[0] * (paddle2.getSize().x / 2),
+                    ball.direction[1] * (paddle2.getSize().x / 2));
+                }
+            }
+        }
+
+        if (ball.getPosition().x + ball.getRadius() >= paddle2.getPosition().x /*- (paddle2.getSize().x / 2)*/){
+            if (ball.getPosition().y + ball.getRadius() >= paddle2.getPosition().y /*+ (paddle2.getSize().y / 2*/){
+                if (ball.getPosition().y - ball.getRadius() <= paddle2.getPosition().y /*- (paddle1.getSize().y / 2)*/) {
+                    ball.direction[0] = ball.direction[0] * -1;
+                    ball.move(ball.direction[0] * (paddle2.getSize().x / 2),
+                    ball.direction[1] * (paddle2.getSize().x / 2));
+                }
+            }
+        }
+
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || 
         sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
@@ -132,6 +167,9 @@ int main()
             paddle1.move(0, 0 - (paddle1.getPosition().y - (paddle1.getSize().y / 2)));
         }
 
+        paddle1.updateCorner();
+        paddle2.updateCorner();
+
         window.clear();
         window.draw(background);
         window.draw(ball);
@@ -140,7 +178,7 @@ int main()
         window.draw(paddle2);
         window.display();
 
-        sf::sleep(sf::seconds(.01 - dt.asMilliseconds()));
+        sf::sleep(sf::seconds(.009 - dt.asMilliseconds()));
         dt = deltaClock.restart();
     }
 
